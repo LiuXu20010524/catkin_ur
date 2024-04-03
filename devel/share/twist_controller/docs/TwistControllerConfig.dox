@@ -1,0 +1,6 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~twist_gain" : \b [double] A factor with which the input twist is multiplied min: 0.0, default: 1.0, max: 100.0
+

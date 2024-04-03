@@ -1,0 +1,7 @@
+\subsubsection usage Usage
+\verbatim
+<node name="twist_controller" pkg="twist_controller" type="twist_controller">
+  <param name="twist_gain" type="double" value="1.0" />
+</node>
+\endverbatim
+

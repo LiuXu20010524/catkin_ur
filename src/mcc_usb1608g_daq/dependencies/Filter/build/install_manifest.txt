@@ -1,0 +1,12 @@
+/usr/local/lib/Filter/FilterConfig.cmake
+/usr/local/lib/Filter/FilterConfigVersion.cmake
+/usr/local/lib/Filter/Filter_Exports.cmake
+/usr/local/include/rtb/Filter/Filter.h
+/usr/local/include/rtb/Filter/StateSpaceFilter.h
+/usr/local/include/rtb/Filter/TransferFunction.h
+/usr/local/include/rtb/Filter/Polynomial.h
+/usr/local/include/rtb/Filter/Designer.h
+/usr/local/include/rtb/Filter/Filter.cpp
+/usr/local/include/rtb/Filter/StateSpaceFilter.cpp
+/usr/local/include/rtb/Filter/Polynomial.cpp
+/usr/local/include/rtb/Filter/TransferFunction.cpp

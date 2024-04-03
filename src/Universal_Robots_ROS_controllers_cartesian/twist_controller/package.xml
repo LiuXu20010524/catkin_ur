@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="2">
+  <name>twist_controller</name>
+  <version>0.1.5</version>
+  <description>
+    A ros_control controller accepting Cartesian twist messages in order to move a robot manipulator.
+    It uses a Cartesian interface to the robot, so that the robot hardware takes care about
+    doing the inverse kinematics. This could be used e.g. for visual servoing applications.
+  </description>
+
+  <maintainer email="scherzin@fzi.de">Stefan Scherzinger</maintainer>
+  <maintainer email="exner@fzi.de">Felix Exner</maintainer>
+
+  <license>Apache-2.0</license>
+
+  <url type="website">http://wiki.ros.org/twist_controller</url>
+
+  <author email="exner@fzi.de">Felix Exner</author>
+  <author email="scherzin@fzi.de">Stefan Scherzinger</author>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>cartesian_interface</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>geometry_msgs</depend>
+  <depend>hardware_interface</depend>
+  <depend>realtime_tools</depend>
+  <depend>roscpp</depend>
+
+  <build_depend>controller_interface</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <exec_depend>controller_interface</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
+  <build_export_depend>controller_interface</build_export_depend>
+
+  <export>
+    <controller_interface plugin="${prefix}/twist_controller_plugin.xml"/>
+  </export>
+</package>

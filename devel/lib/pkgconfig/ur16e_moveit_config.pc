@@ -1,0 +1,8 @@
+prefix=/home/liu_xu/liuxu_Documents/catkin_ur/devel
+
+Name: ur16e_moveit_config
+Description: Description of ur16e_moveit_config
+Version: 1.3.2
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

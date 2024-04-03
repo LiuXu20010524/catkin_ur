@@ -1,0 +1,110 @@
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: &loop_hz 500
+
+eff_joint_traj_controller:
+  type: effort_controllers/JointTrajectoryController
+  joints: &robot_joints
+    - shoulder_pan_joint
+    - shoulder_lift_joint
+    - elbow_joint
+    - wrist_1_joint
+    - wrist_2_joint
+    - wrist_3_joint
+  gains: # Required because we're controlling an effort interface
+    shoulder_pan_joint: {p: 4000,  d: 200, i: 1, i_clamp: 1}
+    shoulder_lift_joint: {p: 10000,  d: 200, i: 1, i_clamp: 1}
+    elbow_joint: {p: 2000,  d: 20, i: 1, i_clamp: 1}
+    wrist_1_joint: {p: 500,  d: 1, i: 1, i_clamp: 1}
+    wrist_2_joint: {p: 500,  d: 1, i: 1, i_clamp: 1}
+    wrist_3_joint: {p: 5,  d: 0.05, i: 0, i_clamp: 1} 
+  constraints:
+    goal_time: 0.6
+    stopped_velocity_tolerance: 0.05
+    shoulder_pan_joint: {trajectory: 0.1, goal: 0.1}
+    shoulder_lift_joint: {trajectory: 0.1, goal: 0.1}
+    elbow_joint: {trajectory: 0.1, goal: 0.1}
+    wrist_1_joint: {trajectory: 0.1, goal: 0.1}
+    wrist_2_joint: {trajectory: 0.1, goal: 0.1}
+    wrist_3_joint: {trajectory: 0.1, goal: 0.1}
+  stop_trajectory_duration: 0.5
+  state_publish_rate: *loop_hz
+  action_monitor_rate: 10
+
+joint_group_eff_controller:
+  type: effort_controllers/JointGroupEffortController
+  joints:
+    - shoulder_pan_joint
+    - shoulder_lift_joint
+    - elbow_joint
+    - wrist_1_joint
+    - wrist_2_joint
+    - wrist_3_joint
+
+joint_eff_velocity_controller_2:
+  type: effort_controllers/JointVelocityController
+  joint: shoulder_lift_joint
+  pid: {p: 1000,  d: 100, i: 1}
+
+joint_eff_velocity_controller_1:
+  type: effort_controllers/JointVelocityController
+  joint: shoulder_pan_joint
+  pid: {p: 500,  d: 50, i: 1}
+
+joint_eff_velocity_controller_3:
+  type: effort_controllers/JointVelocityController
+  joint: elbow_joint
+  pid: {p: 200,  d: 20, i: 1}
+
+joint_eff_velocity_controller_4:
+  type: effort_controllers/JointVelocityController
+  joint: wrist_1_joint
+  pid: {p: 10,  d: 2, i: 0.2}
+
+joint_eff_velocity_controller_5:
+  type: effort_controllers/JointVelocityController
+  joint: wrist_2_joint
+  pid: {p: 0.01,  d: 0.0005, i: 0.1}
+
+joint_eff_velocity_controller_6:
+  type: effort_controllers/JointVelocityController
+  joint: wrist_3_joint
+  pid: {p: 0.001,  d: 0.00001, i: 0}
+
+PositionTorqueController:
+  type: effort_controllers/JointGroupPositionController
+  joints: *robot_joints
+  shoulder_lift_joint:
+    pid: {p: 2000.0, i: 50, d: 50.0, i_clamp_min: -10000, i_clamp_max: 10000}
+  shoulder_pan_joint:
+    pid: {p: 1000.0, i: 20, d: 20.0, i_clamp_min: -10000, i_clamp_max: 10000}
+  elbow_joint:
+    pid: {p: 500.0, i: 10, d: 10.0, i_clamp_min: -10000, i_clamp_max: 10000}
+  wrist_1_joint:
+    pid: {p: 50.0, i: 2, d: 5.0, i_clamp_min: -10000, i_clamp_max: 10000}
+  wrist_2_joint:
+    pid: {p: 5.0, i: 0.1, d: 1.0, i_clamp_min: -10000, i_clamp_max: 10000}
+  wrist_3_joint:
+    pid: {p: 0.5, i: 0.01, d: 0.1, i_clamp_min: -10000, i_clamp_max: 10000}
+
+# JointGroupVelocityController:
+#   type: velocity_controllers/JointGroupVelocityController
+#   joints:
+#     - shoulder_pan_joint
+#     - shoulder_lift_joint
+#     - elbow_joint
+#     - wrist_1_joint
+#     - wrist_2_joint
+#     - wrist_3_joint
+#   gains:
+#     shoulder_lift_joint: {p: 1000,  d: 100, i: 1}
+#     shoulder_pan_joint: {p: 500,  d: 50, i: 1}
+#     elbow_joint: {p: 200,  d: 20, i: 1}
+#     wrist_1_joint: {p: 10,  d: 2, i: 0.2}
+#     wrist_2_joint: {p: 0.01,  d: 0.0005, i: 0.1}
+#     wrist_3_joint: {p: 0.001,  d: 0.00001, i: 0}
+
+
+
+
+

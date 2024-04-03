@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -shared -Wl,-soname,libur20_kin.so -o /home/liu_xu/liuxu_Documents/catkin_ur/devel/lib/libur20_kin.so CMakeFiles/ur20_kin.dir/src/ur_kin.cpp.o 

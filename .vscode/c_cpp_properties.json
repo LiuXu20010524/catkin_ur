@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "${workspaceFolder}/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/opt/openrobots/include/**",
+        "${workspaceFolder}/src/Universal_Robots_ROS_Driver/ur_calibration/include/**",
+        "${workspaceFolder}/src/universal_robot/ur_kinematics/include/**",
+        "${workspaceFolder}/src/Universal_Robots_ROS_Driver/ur_robot_driver/include/**",
+        "/usr/include/**",
+        "${workspaceFolder}/src/admittance_control_folder/shear_thickening_fluid_controller/include/**",
+        "${workspaceFolder}/src/cartesian_speed_controller/include/**",
+        "${workspaceFolder}/src/mcc_usb1608g_daq/include/**",
+        "${workspaceFolder}/src/universal_robot/ur_kinematics/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

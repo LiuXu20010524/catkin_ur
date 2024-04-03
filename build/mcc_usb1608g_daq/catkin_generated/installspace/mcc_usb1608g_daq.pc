@@ -1,0 +1,8 @@
+prefix=/home/liu_xu/liuxu_Documents/catkin_ur/install
+
+Name: mcc_usb1608g_daq
+Description: Description of mcc_usb1608g_daq
+Version: 0.1.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: message_runtime

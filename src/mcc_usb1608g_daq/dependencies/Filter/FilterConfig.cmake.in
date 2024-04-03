@@ -1,0 +1,4 @@
+#CMake configuration file for Filter library
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/Filter_Exports.cmake")

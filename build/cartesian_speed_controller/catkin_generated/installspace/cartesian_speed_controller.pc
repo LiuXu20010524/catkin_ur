@@ -1,0 +1,8 @@
+prefix=/home/liu_xu/liuxu_Documents/catkin_ur/install
+
+Name: cartesian_speed_controller
+Description: Description of cartesian_speed_controller
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
