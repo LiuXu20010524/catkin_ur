@@ -8,9 +8,9 @@ int main(int argc, char *argv[])
     float freq = 125; // UR机械臂最大接收125Hz的控制频率
     SFC_controller SFC_controller_obj(nh, 1.0, 1/freq); // parameters list: NodeHandle, m_aim, delta_T
     // parameters list: f_ease, f_interf, x_d_bar_dot, x_c_bar_dot, w_cease
-    SFC_controller_obj.parameters_Auto_tuning(8, 40, 0.05, 0.15, 2.7);
+    SFC_controller_obj.parameters_Auto_tuning(8, 40, 0.05, 0.1, 2.7);
     ros::Rate rate(freq);
-    while(SFC_controller_obj.sub_sensor_mark == false || SFC_controller_obj.sub_joint_mark == false)
+    while(SFC_controller_obj.sub_sensor_mark == false || SFC_controller_obj.sub_joint_mark == false) // 等待传感器数据和关节数据的回调函数收到数据
     {
         ros::Duration(0.0001).sleep();
     }

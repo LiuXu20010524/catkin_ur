@@ -3,22 +3,22 @@
 SFC_controller::SFC_controller(ros::NodeHandle &nh, float m_aim , float delta_T_aim): m(m_aim),delta_T(delta_T_aim)
 {
     ROS_INFO("SFC_controller object is created");
-    twist_pub = nh.advertise<geometry_msgs::Twist>("/twist_controller/command", 1); // Note: you need to change the topic name to the one you are using
-    force_sensor_sub = nh.subscribe<geometry_msgs::WrenchStamped>("/mcc_1608g_daq", 1, &SFC_controller::force_sensor_sub_callback, this);
-    joint_states_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &SFC_controller::joint_states_sub_callback, this);
-    ctrl_cmd_world_frame.setZero();
-    this->compute_transform_tool2ee();
-    this->compute_transform_base_link2world_E402();
-    bag_ctrl_cmd_world_frame.open(bag_ctrl_cmd_world_frame_path, rosbag::BagMode::Write);
-    bag_sensor_data_itself.open(bag_sensor_data_itself_path, rosbag::BagMode::Write);
-    bag_sensor_data_world.open(bag_sensor_data_world_path, rosbag::BagMode::Write);
-    bag_msgs_ctrl_cmd_world_frame.data.resize(6);
-    bag_msgs_sensor_world_frame.data.resize(6);
-    spinner = new ros::AsyncSpinner(5);
-    spinner->start();
+    twist_pub = nh.advertise<geometry_msgs::Twist>("/twist_controller/command", 1); // 使用twist_controller末端速度控制器
+    force_sensor_sub = nh.subscribe<geometry_msgs::WrenchStamped>("/mcc_1608g_daq", 1, &SFC_controller::force_sensor_sub_callback, this); //接收传感器数据
+    joint_states_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &SFC_controller::joint_states_sub_callback, this); // 接收关节角度数据
+    ctrl_cmd_world_frame.setZero(); // 初始化世界坐标系下的控制指令
+    this->compute_transform_tool2ee(); // 计算传感器安装到末端执行器(flange)的变换矩阵
+    this->compute_transform_base_link2world_E402(); // 计算base_link到E402实验室世界坐标系的变换矩阵
+    bag_ctrl_cmd_world_frame.open(bag_ctrl_cmd_world_frame_path, rosbag::BagMode::Write); // 使用rosbag记录数据
+    bag_sensor_data_itself.open(bag_sensor_data_itself_path, rosbag::BagMode::Write); // 使用rosbag记录数据
+    bag_sensor_data_world.open(bag_sensor_data_world_path, rosbag::BagMode::Write); // 使用rosbag记录数据
+    bag_msgs_ctrl_cmd_world_frame.data.resize(6); // 初始化rosbag数据
+    bag_msgs_sensor_world_frame.data.resize(6); // 初始化rosbag数据
+    spinner = new ros::AsyncSpinner(5); // 使用多线程处理回调函数
+    spinner->start(); 
 }
 
-SFC_controller::~SFC_controller()
+SFC_controller::~SFC_controller() // 析构函数
 {
     ROS_INFO("SFC_controller object is destroyed");
     bag_ctrl_cmd_world_frame.close();
@@ -30,17 +30,18 @@ SFC_controller::~SFC_controller()
 //计算SFC控制器的参数，根据论文《A Shear-Thickening Fluid-Based Controller for Physical Human-Robot Interaction》
 //考虑空间是六维的，因此应该六个维度分开单独计算，此处只是用作测试，因此只计算了一个维度的参数，并在之后全都用的这个参数。
 //但这样做是不对的，至少对于移动和旋转两个方向的参数应该分开计算。
+//补充：如果使用这个parameters_auto_tuning得到的参数，移动速度会很慢，我在实际应用中将控制指令放大了8倍，这样看起来就比较正常了
 void SFC_controller::parameters_Auto_tuning(float f_ease, float f_interf, float x_d_bar_dot, float x_c_bar_dot, float w_cease)
 {
     n = log(abs(f_interf/f_ease)) / log(abs(x_c_bar_dot/x_d_bar_dot));
     float w_c_max = w_cease * pow(f_interf/f_ease, (n-1)/n);
-    if (w_c_max > 1/((n*delta_T*pow(2,(1+n)/(2*n)))))
+    if (w_c_max > (1/(n*delta_T))*pow(2,(1+n)/(2*n)))
     {
-        w_cease = 2/((n*delta_T)*pow((f_ease/(sqrt(2)*f_interf)),(n-1)/(n)));
-        w_c_max = w_cease * pow(f_interf/f_ease, (n-1)/n);
+        w_cease = (2/(n*delta_T))*pow((f_ease/(sqrt(2)*f_interf)),(n-1)/(n));
+        // w_c_max = w_cease * pow(f_interf/f_ease, (n-1)/n);
     }
     double psi = 2*sqrt(PI)*tgamma(1+n/2)/tgamma((3+n)/2); // Ψ function in paper
-    miu = pow((m*w_cease),n)/(psi*pow(sqrt(2)/f_ease,n-1));
+    miu = (pow((m*w_cease),n)/psi)*pow(sqrt(2)/f_ease,n-1);
     g = x_d_bar_dot*pow(miu/f_ease,1/n);
     std::cout << "parameters_Auto_tuning" << std::endl << "n: " << n << std::endl << "miu: " << miu << std::endl << "g: " << g << std::endl;
 }
@@ -78,13 +79,14 @@ void SFC_controller::joint_states_sub_callback(const sensor_msgs::JointState::Co
 }
 
 //计算SFC控制器的主要控制函数，进行了坐标系变换，同时使用rosbag记录数据
+//注意：这里将世界坐标系下的角速度控制命令设为0，但此处计算了传感器力矩数据，之后可以根据需要进行调整
 void SFC_controller::SFC_main_controller()
 {
     // -----
     Eigen::Matrix3d orientation_baselink2base;
     orientation_baselink2base <<  sqrt(2)/2, -sqrt(2)/2, 0.0,
                                 -0.5, -0.5, -sqrt(2)/2,
-                                0.5, 0.5, -sqrt(2)/2;
+                                0.5, 0.5, -sqrt(2)/2;  //控制指令计算是在世界坐标系下的，但实际控制是在机器人base坐标系下的，因此需要转换
     // -----
 
     static Eigen::Matrix4d tf_tool2world_;
@@ -96,8 +98,9 @@ void SFC_controller::SFC_main_controller()
     static Eigen::Vector<double,6> x_double_dot;
     x_double_dot = (1/m)*(force_sensor_data - miu*(ctrl_cmd_world_frame.cwiseAbs().array().pow(n-1).matrix()).cwiseProduct(ctrl_cmd_world_frame));
     ctrl_cmd_world_frame = g*(ctrl_cmd_world_frame+delta_T*x_double_dot); //此处的ctrl_cmd_world_frame是在世界坐标系下的，需要转换到机器人基坐标系下
-    ctrl_cmd_world_frame.block(0,0,3,1) = ctrl_cmd_world_frame.block(0,0,3,1) / 10;
-    ctrl_cmd_world_frame.block(3,0,3,1) = ctrl_cmd_world_frame.block(3,0,3,1)/1.5;
+    //注意以上，同时计算了速度控制指令和角速度控制指令，但后面将角速度控制指令设为0了。如果之后要添加角速度控制，起始应该速度控制指令和角速度控制指令分开计算
+    ctrl_cmd_world_frame.block(0,0,3,1) = ctrl_cmd_world_frame.block(0,0,3,1);
+    ctrl_cmd_world_frame.block(3,0,3,1) = Eigen::Vector3d::Zero(); // 虽然之前计算了，但是这里没有用到，要求末端执行器相对世界的角速度为0
     ctrl_cmd_robot_frame.block(0,0,3,1) = orientation_baselink2base.transpose() * ctrl_cmd_world_frame.block(0,0,3,1);
     ctrl_cmd_robot_frame.block(3,0,3,1) = orientation_baselink2base.transpose() * ctrl_cmd_world_frame.block(3,0,3,1);
     this->msg_pub_fun(ctrl_cmd_robot_frame);
@@ -147,7 +150,6 @@ void SFC_controller::compute_transform_base_link2world_E402()
                                 -0.5, -0.5, -sqrt(2)/2,
                                 0.5, 0.5, -sqrt(2)/2;  //E402的UR机械臂的base坐标系和世界坐标系的转换矩阵
     tf_baselink2world_E402.block(0,0,3,3) = orientation_base2world*orientation_baselink2base;
-    // tf_base2world_E402.block(0,0,3,3) = orientation_base2world;
     tf_baselink2world_E402.block(0,3,3,1) = position_base2world;
     tf_baselink2world_E402(3,3) = 1.0;
 }

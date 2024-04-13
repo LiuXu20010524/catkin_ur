@@ -172,90 +172,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_cpp.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_cpp.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-dynamic_reconfigure_generate_messages_cpp: Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_cpp.dir/rule
-.PHONY : dynamic_reconfigure_generate_messages_cpp
-
-# fast build rule for target.
-dynamic_reconfigure_generate_messages_cpp/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_cpp.dir/build.make Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_cpp.dir/build
-.PHONY : dynamic_reconfigure_generate_messages_cpp/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir/rule
-
-# Convenience name for target.
-dynamic_reconfigure_generate_messages_eus: Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir/rule
-.PHONY : dynamic_reconfigure_generate_messages_eus
-
-# fast build rule for target.
-dynamic_reconfigure_generate_messages_eus/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir/build.make Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_eus.dir/build
-.PHONY : dynamic_reconfigure_generate_messages_eus/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-dynamic_reconfigure_generate_messages_lisp: Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/rule
-.PHONY : dynamic_reconfigure_generate_messages_lisp
-
-# fast build rule for target.
-dynamic_reconfigure_generate_messages_lisp/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/build.make Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_lisp.dir/build
-.PHONY : dynamic_reconfigure_generate_messages_lisp/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_nodejs.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_nodejs.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-dynamic_reconfigure_generate_messages_nodejs: Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_nodejs.dir/rule
-.PHONY : dynamic_reconfigure_generate_messages_nodejs
-
-# fast build rule for target.
-dynamic_reconfigure_generate_messages_nodejs/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_nodejs.dir/build.make Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_nodejs.dir/build
-.PHONY : dynamic_reconfigure_generate_messages_nodejs/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/rule
-
-# Convenience name for target.
-dynamic_reconfigure_generate_messages_py: Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/rule
-.PHONY : dynamic_reconfigure_generate_messages_py
-
-# fast build rule for target.
-dynamic_reconfigure_generate_messages_py/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/build.make Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_generate_messages_py.dir/build
-.PHONY : dynamic_reconfigure_generate_messages_py/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_gencfg.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_gencfg.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_gencfg.dir/rule
-
-# Convenience name for target.
-dynamic_reconfigure_gencfg: Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_gencfg.dir/rule
-.PHONY : dynamic_reconfigure_gencfg
-
-# fast build rule for target.
-dynamic_reconfigure_gencfg/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_gencfg.dir/build.make Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/dynamic_reconfigure_gencfg.dir/build
-.PHONY : dynamic_reconfigure_gencfg/fast
-
-# Convenience name for target.
 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/twist_controller_gencfg.dir/rule:
 	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/twist_controller_gencfg.dir/rule
 .PHONY : Universal_Robots_ROS_controllers_cartesian/twist_controller/CMakeFiles/twist_controller_gencfg.dir/rule
@@ -320,12 +236,6 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
-	@echo "... dynamic_reconfigure_gencfg"
-	@echo "... dynamic_reconfigure_generate_messages_cpp"
-	@echo "... dynamic_reconfigure_generate_messages_eus"
-	@echo "... dynamic_reconfigure_generate_messages_lisp"
-	@echo "... dynamic_reconfigure_generate_messages_nodejs"
-	@echo "... dynamic_reconfigure_generate_messages_py"
 	@echo "... twist_controller_gencfg"
 	@echo "... cartesian_twist_controller"
 	@echo "... src/twist_controller.o"

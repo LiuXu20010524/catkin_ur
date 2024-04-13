@@ -1,0 +1,1 @@
+set(ORDERED_PATHS "/home/liu_xu/liuxu_Documents/catkin_ur/devel/lib;/opt/ros/noetic/lib")

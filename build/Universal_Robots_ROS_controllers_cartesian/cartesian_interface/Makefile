@@ -172,76 +172,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_cpp: Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/rule
-.PHONY : geometry_msgs_generate_messages_cpp
-
-# fast build rule for target.
-geometry_msgs_generate_messages_cpp/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build.make Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_cpp.dir/build
-.PHONY : geometry_msgs_generate_messages_cpp/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_eus: Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_eus.dir/rule
-.PHONY : geometry_msgs_generate_messages_eus
-
-# fast build rule for target.
-geometry_msgs_generate_messages_eus/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build.make Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_eus.dir/build
-.PHONY : geometry_msgs_generate_messages_eus/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_lisp: Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/rule
-.PHONY : geometry_msgs_generate_messages_lisp
-
-# fast build rule for target.
-geometry_msgs_generate_messages_lisp/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build.make Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_lisp.dir/build
-.PHONY : geometry_msgs_generate_messages_lisp/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_nodejs: Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/rule
-.PHONY : geometry_msgs_generate_messages_nodejs
-
-# fast build rule for target.
-geometry_msgs_generate_messages_nodejs/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build.make Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_nodejs.dir/build
-.PHONY : geometry_msgs_generate_messages_nodejs/fast
-
-# Convenience name for target.
-Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
-.PHONY : Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
-
-# Convenience name for target.
-geometry_msgs_generate_messages_py: Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_py.dir/rule
-.PHONY : geometry_msgs_generate_messages_py
-
-# fast build rule for target.
-geometry_msgs_generate_messages_py/fast:
-	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_py.dir/build.make Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/geometry_msgs_generate_messages_py.dir/build
-.PHONY : geometry_msgs_generate_messages_py/fast
-
-# Convenience name for target.
 Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/cartesian_state_interface_test.dir/rule:
 	cd /home/liu_xu/liuxu_Documents/catkin_ur/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/cartesian_state_interface_test.dir/rule
 .PHONY : Universal_Robots_ROS_controllers_cartesian/cartesian_interface/CMakeFiles/cartesian_state_interface_test.dir/rule
@@ -461,11 +391,6 @@ help:
 	@echo "... _run_tests_cartesian_interface_gtest_cartesian_command_interface_test"
 	@echo "... _run_tests_cartesian_interface_gtest_cartesian_state_interface_test"
 	@echo "... clean_test_results_cartesian_interface"
-	@echo "... geometry_msgs_generate_messages_cpp"
-	@echo "... geometry_msgs_generate_messages_eus"
-	@echo "... geometry_msgs_generate_messages_lisp"
-	@echo "... geometry_msgs_generate_messages_nodejs"
-	@echo "... geometry_msgs_generate_messages_py"
 	@echo "... run_tests_cartesian_interface"
 	@echo "... run_tests_cartesian_interface_gtest"
 	@echo "... run_tests_cartesian_interface_gtest_cartesian_command_interface_test"

@@ -1,0 +1,8 @@
+prefix=/home/liu_xu/liuxu_Documents/catkin_ur/devel
+
+Name: admittance_controller
+Description: Description of admittance_controller
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
