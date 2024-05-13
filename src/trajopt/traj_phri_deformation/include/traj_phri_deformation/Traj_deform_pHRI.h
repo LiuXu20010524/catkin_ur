@@ -60,7 +60,7 @@ public:
     Eigen::Vector<double,6> joint_velocity_; // Joint velocity
     Eigen::Vector<double,6> sensor_data_; // Sensor data
     Eigen::Matrix4d tf_sensor2flange; // Transformation matrix from the sensor to the end effector(flange)
-    Eigen::Matrix4d tf_flange2tool0; // Transformation matrix from the end effector(flange) to the tool0
+    Eigen::Matrix<double,4,4> tf_baselink2world_E402; // transform matrix from base to world
     Eigen::VectorXd deform_traj_vector; // Deformed trajectory vector for QP optimization
     Eigen::SparseMatrix<double> P_QP; // QP optimization P matrix
     Eigen::MatrixXd A_paper; // A matrix in the paper "Trajectory Deformations From Physical Human–Robot Interaction" to get the P matrix
@@ -86,12 +86,12 @@ public:
     void sensor_cb(const geometry_msgs::WrenchStamped::ConstPtr &msg); // Callback function for sensor
     bool move_to_initial_pose(geometry_msgs::Pose &initial_target_pose); // Move to initial pose
     void compute_tf_sensor2flange(); // Compute the transformation matrix from the sensor to the end effector(flange)
-    void compute_tf_flange2tool0(); // Compute the transformation matrix from the end effector(flange) to the tool0
     void define_origin_traj(bool using_custom_traj, std::optional<std::vector<geometry_msgs::Pose>> custom_traj, std::optional<bool> traj_repeat); // Define the original trajectory
     // if using_custom_traj is true, use custom_traj as the original trajectory, otherwise use the default trajectory(circle in cartesian space)
     void traj_deform_pHRI_with_control(); // Trajectory deformation for pHRI
     void traj_deform_main_func(); // Main function for trajectory deformation
     void control_main_func(); // Main function for impedance control
+    void compute_transform_base_link2world_E402();
 };
 
 #endif

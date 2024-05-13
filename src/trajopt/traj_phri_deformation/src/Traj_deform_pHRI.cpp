@@ -6,14 +6,15 @@ Traj_deform_pHRI::Traj_deform_pHRI(ros::NodeHandle &nh, int deform_traj_num, int
     // initialize subscriber and publisher
     joint_states_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &Traj_deform_pHRI::joint_states_cb, this);
     sensor_sub = nh.subscribe<geometry_msgs::WrenchStamped>("/mcc_1608g_daq", 1, &Traj_deform_pHRI::sensor_cb, this);
-    joint_traj_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>("/eff_joint_traj_controller/command", 1);
+    joint_traj_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>("/scaled_pos_joint_traj_controller/command", 1); //UR实机话题
+    // joint_traj_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>("/eff_joint_traj_controller/command", 1); // gazebo仿真话题
 
     // deform_traj.reserve(deform_traj_num_); // reserve the memory for deform_traj
     deform_traj_matrix.resize(7,deform_traj_num_); // resize the deform_traj_matrix
     deform_traj_vector.resize(3*deform_traj_num_); // resize the deform_traj_vector
 
     // alpha is the weight for the deformation
-    alpha_ = 100000000000; // alpha_ should be a very very large number in this case, to ensure the stability of the deformation
+    alpha_ = 4e11; // alpha_ should be a very very large number in this case, to ensure the stability of the deformation
 
     // initialize the Osqp-Eigen parameters and solver
     // P_QP is a sparse matrix
@@ -77,8 +78,9 @@ Traj_deform_pHRI::Traj_deform_pHRI(ros::NodeHandle &nh, int deform_traj_num, int
     }
 
     this->compute_tf_sensor2flange(); // compute the transformation matrix from the sensor to the end effector(flange)
-    this->compute_tf_flange2tool0();
-    spinner = new ros::AsyncSpinner(5);
+    // this->compute_tf_flange2tool0();
+    this->compute_transform_base_link2world_E402();
+    spinner = new ros::AsyncSpinner(10);
     spinner->start();
     ROS_INFO("end of constructor");
 }
@@ -110,29 +112,36 @@ void Traj_deform_pHRI::sensor_cb(const geometry_msgs::WrenchStamped::ConstPtr &m
 // Move to initial pose, using MoveIt
 bool Traj_deform_pHRI::move_to_initial_pose(geometry_msgs::Pose &initial_target_pose)
 {
+    // transform the initial pose from the world frame to the base_link frame
+    Eigen::Vector3d position(initial_target_pose.position.x, initial_target_pose.position.y, initial_target_pose.position.z);
+    position = tf_baselink2world_E402.block(0,0,3,3).inverse()*position;
+    initial_target_pose.position.x = position(0); initial_target_pose.position.y = position(1); initial_target_pose.position.z = position(2);
+    Eigen::Quaterniond q(initial_target_pose.orientation.w, initial_target_pose.orientation.x, initial_target_pose.orientation.y, initial_target_pose.orientation.z);
+    q = tf_baselink2world_E402.block(0,0,3,3).inverse()*q;
+    initial_target_pose.orientation.x = q.x(); initial_target_pose.orientation.y = q.y(); initial_target_pose.orientation.z = q.z(); initial_target_pose.orientation.w = q.w();
+    // ----------------
+    std::vector<double> joint_group_positions;
+    joint_group_positions.push_back(0.5438811462201656);
+    joint_group_positions.push_back(-1.462031);
+    joint_group_positions.push_back(-1.9216135275443218);
+    joint_group_positions.push_back(-0.548961);
+    joint_group_positions.push_back(1.741);
+    joint_group_positions.push_back(-0.172145771);
+    //
+
     moveit::planning_interface::MoveGroupInterface ur5_move_group("manipulator");
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-    // Set the parameters of the MoveIt
-    ur5_move_group.setPlanningTime(20); // Set the planning time
-    ur5_move_group.setNumPlanningAttempts(10); // Set the number of planning attempts
-    ur5_move_group.setMaxAccelerationScalingFactor(0.3); // Allowable maximum acceleration
-    ur5_move_group.setMaxVelocityScalingFactor(0.3); // Allowable maximum velocity
-    ur5_move_group.setGoalJointTolerance(0.005); // Set the tolerance of the goal joint
-    ur5_move_group.setGoalPositionTolerance(0.005); // Set the tolerance of the goal position
-    // Move to home position
-    ur5_move_group.setNamedTarget("home"); // Set the target pose
-    ur5_move_group.plan(my_plan);
-    ur5_move_group.execute(my_plan);
-    ros::Duration(1.0).sleep(); // sleep for 1s
-    // move to a middle position
-    geometry_msgs::Pose mid_pose;
-    mid_pose.position.x = 0.1;  mid_pose.position.y = -0.3; mid_pose.position.z = 0.6;
-    ur5_move_group.setPoseTarget(mid_pose);
-    ur5_move_group.plan(my_plan);
-    ur5_move_group.execute(my_plan);
-    ros::Duration(1.0).sleep(); // sleep for 1s
+    ur5_move_group.setMaxAccelerationScalingFactor(0.1); // Allowable maximum acceleration
+    ur5_move_group.setMaxVelocityScalingFactor(0.1); // Allowable maximum velocity
+    ur5_move_group.setGoalJointTolerance(.001); // Set the tolerance of the goal joint
+    ur5_move_group.setGoalPositionTolerance(.001); // Set the tolerance of the goal position
+    ur5_move_group.setGoalOrientationTolerance(.001); // Set the tolerance of the goal orientation
+    ur5_move_group.setEndEffectorLink("flange"); // Set the end effector link
+    ur5_move_group.setPoseReferenceFrame("base_link"); // Set the reference frame
     // move to the initial position
-    ur5_move_group.setPoseTarget(initial_target_pose); // Set target pose
+    
+    // ur5_move_group.setPoseTarget(initial_target_pose); // Set target pose
+    ur5_move_group.setJointValueTarget(joint_group_positions);
     ur5_move_group.plan(my_plan);
     if(ur5_move_group.execute(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
     {
@@ -170,7 +179,9 @@ void Traj_deform_pHRI::define_origin_traj(bool using_custom_traj, std::optional<
         Eigen::Vector<double, 7> temp;
         for (double i = 0; i < 2 * PI; i += 0.004)
         {
-            temp << -0.2*cos(i), 0.6, 0.5+0.2*sin(i) , -sqrt(2)/2, 0, 0, sqrt(2)/2; // x, y, z, qx, qy, qz, qw
+            // 我认为ur_kinematics的逆解有相对较大误差，这里做了一个补偿
+            temp = Eigen::Vector<double,7>(-0.2*cos(i)-0.02, 0.66, 0.2*sin(i)-0.02 , 0.5, -0.5, 0.5, 0.5);
+            // temp = Eigen::Vector<double,7>(-0.2*cos(i), 0.6, 0.2*sin(i), 0.5, -0.5, 0.5, 0.5);
             origin_traj.push_back(temp);
         }
         traj_repeat_mark = true; // default repeat the default trajectory
@@ -184,19 +195,6 @@ void Traj_deform_pHRI::define_origin_traj(bool using_custom_traj, std::optional<
         deform_traj_matrix.col(i) = *origin_traj_iter;
         origin_traj_iter++;
     }
-}
-
-// compute the transformation matrix from flange to the tool0
-void Traj_deform_pHRI::compute_tf_flange2tool0()
-{
-    tf_flange2tool0.setZero();
-    Eigen::Matrix3d orientation_flange2tool0;
-    orientation_flange2tool0 << 0,1,0,
-                                0,0,1,
-                                1,0,0;
-    tf_flange2tool0.block(0,0,3,3) = orientation_flange2tool0;
-    tf_flange2tool0.block(0,3,3,1) = Eigen::Vector3d(0.0,0.0,0.0);
-    tf_flange2tool0(3,3) = 1.0;
 }
 
 // compute the transformation matrix from the sensor to the end effector(flange)
@@ -214,6 +212,23 @@ void Traj_deform_pHRI::compute_tf_sensor2flange()
     tf_sensor2flange(3,3) = 1.0;
 }
 
+void Traj_deform_pHRI::compute_transform_base_link2world_E402()
+{
+    Eigen::Matrix3d orientation_base2world,orientation_baselink2base;
+    // Eigen::Vector3d euler_angle_baselink2base(0.0, 0.0, -PI);  // base_link to base xyz euler angle
+    Eigen::Vector3d position_base2world(0,0,0);
+    // orientation_baselink2base = (Eigen::AngleAxisd(euler_angle_baselink2base[2], Eigen::Vector3d::UnitZ())
+    //                             * Eigen::AngleAxisd(euler_angle_baselink2base[1], Eigen::Vector3d::UnitY())
+    //                             * Eigen::AngleAxisd(euler_angle_baselink2base[0], Eigen::Vector3d::UnitX())).toRotationMatrix();
+    // orientation_baselink2base 是base_link到base的变换矩阵
+    orientation_base2world  <<  sqrt(2)/2, -sqrt(2)/2, 0.0,
+                                -0.5, -0.5, sqrt(2)/2,
+                                -0.5, -0.5, -sqrt(2)/2;  //E402的UR机械臂的base坐标系和世界坐标系的转换矩阵
+    tf_baselink2world_E402.block(0,0,3,3) = orientation_base2world;
+    tf_baselink2world_E402.block(0,3,3,1) = position_base2world;
+    tf_baselink2world_E402(3,3) = 1.0;
+}
+
 // main function for trajectory deformation
 void Traj_deform_pHRI::traj_deform_main_func() // so far, the code only deform the xyz position of the trajectory
 {
@@ -228,8 +243,8 @@ void Traj_deform_pHRI::traj_deform_main_func() // so far, the code only deform t
                         T[4], T[5], T[6], T[7],
                         T[8], T[9], T[10], T[11],
                         T[12], T[13], T[14], T[15]; // transformation matrix from flange to base_link frame
-    F.segment(0,3) = tf_flange2baselink.block(0,0,3,3)*tf_sensor2flange.block(0,0,3,3)*sensor_data_.segment(0,3);
-    F.segment(3,3) = tf_flange2baselink.block(0,0,3,3)*tf_sensor2flange.block(0,0,3,3)*sensor_data_.segment(3,3);
+    F.segment(0,3) = tf_baselink2world_E402.block(0,0,3,3)*tf_flange2baselink.block(0,0,3,3)*tf_sensor2flange.block(0,0,3,3)*sensor_data_.segment(0,3);
+    F.segment(3,3) = tf_baselink2world_E402.block(0,0,3,3)*tf_flange2baselink.block(0,0,3,3)*tf_sensor2flange.block(0,0,3,3)*sensor_data_.segment(3,3);
     q_QP.segment(0,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(0)); // set the q vector for QP optimization
     q_QP.segment(deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(1));
     q_QP.segment(2*deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(2));
@@ -248,32 +263,28 @@ void Traj_deform_pHRI::traj_deform_main_func() // so far, the code only deform t
         deform_traj_matrix(1,i) += deform_traj_vector(i+deform_traj_num_); // update the y position of the deformed trajectory
         deform_traj_matrix(2,i) += deform_traj_vector(i+2*deform_traj_num_); // update the z position of the deformed trajectory
     }
-
 }
 
 void Traj_deform_pHRI::control_main_func()
 {
     trajectory_msgs::JointTrajectoryPoint joint_traj_point;
-    Eigen::Matrix4d tf_tool0_2_baselink;
-    Eigen::Matrix4d tf_ee2base; //note: end-effector is link flange in urdf
-    Eigen::Quaterniond q_target_pose_to_baselink;
+    Eigen::Matrix4d tf_flange2baselink;
+    Eigen::Quaterniond q_targetpose_to_world;
     // note: moveit cartesian target point is the tool0 frame, base on the world frame, and the base_link frame is coincident with the world frame
-    double q_sol[48]; // use ur_kinematics to calculate the inverse kinematics, the q_sol is a pointer to a 8×6 joint angles
+    double q_sol[48] = {0}; // use ur_kinematics to calculate the inverse kinematics, the q_sol is a pointer to a 8×6 joint angles
     int inverse_return;
     Eigen::Matrix<double,8,6> q_sol_matrix; // joint angles matrix
     // calculate the target point and inverse kinematics
         // convert quaternion to rotation matrix
-    q_target_pose_to_baselink = Eigen::Quaterniond(deform_traj_matrix(6,0),deform_traj_matrix(3,0),deform_traj_matrix(4,0),deform_traj_matrix(5,0));
-    tf_tool0_2_baselink.block(0,0,3,3) = q_target_pose_to_baselink.toRotationMatrix();
-    tf_tool0_2_baselink.block(3,0,1,3) = Eigen::Matrix<double,1,3>::Zero();
-    tf_tool0_2_baselink.block(0,3,3,1) = deform_traj_matrix.block(0,0,3,1);
-    tf_tool0_2_baselink(3,3) = 1.0;
-        // transform the target transformation matrix to the flange frame to the base_link frame
-    tf_ee2base = tf_tool0_2_baselink*tf_flange2tool0;
+    q_targetpose_to_world = Eigen::Quaterniond(deform_traj_matrix(6,0),deform_traj_matrix(3,0),deform_traj_matrix(4,0),deform_traj_matrix(5,0));
+    tf_flange2baselink.block(0,0,3,3) = (tf_baselink2world_E402.block(0,0,3,3).inverse())*(q_targetpose_to_world);
+    tf_flange2baselink.block(3,0,1,3) = Eigen::Matrix<double,1,3>::Zero();
+    tf_flange2baselink.block(0,3,3,1) = (tf_baselink2world_E402.block(0,0,3,3).inverse())*deform_traj_matrix.block(0,0,3,1);
+    tf_flange2baselink(3,3) = 1.0;
         // calculate the inverse kinematics
-    double T[16] = {tf_ee2base(0,0), tf_ee2base(0,1), tf_ee2base(0,2), tf_ee2base(0,3),
-                    tf_ee2base(1,0), tf_ee2base(1,1), tf_ee2base(1,2), tf_ee2base(1,3),
-                    tf_ee2base(2,0), tf_ee2base(2,1), tf_ee2base(2,2), tf_ee2base(2,3),
+    double T[16] = {tf_flange2baselink(0,0), tf_flange2baselink(0,1), tf_flange2baselink(0,2), tf_flange2baselink(0,3),
+                    tf_flange2baselink(1,0), tf_flange2baselink(1,1), tf_flange2baselink(1,2), tf_flange2baselink(1,3),
+                    tf_flange2baselink(2,0), tf_flange2baselink(2,1), tf_flange2baselink(2,2), tf_flange2baselink(2,3),
                     0, 0, 0, 1};
     inverse_return = ur_kinematics::inverse(T, q_sol); // calculate the inverse kinematics, return the number of solutions
     q_sol_matrix << q_sol[0], q_sol[1], q_sol[2], q_sol[3], q_sol[4], q_sol[5],
@@ -289,6 +300,8 @@ void Traj_deform_pHRI::control_main_func()
         // Note: you need to check every angles return by ur_kineamtics::inverse, see weather it is closest to the current joint angles
         //       by adding and minusing 2*PI, PI, 0, -PI, -2*PI. It's not each row adds or minuses the same value, maybe different in each
         //       element of the same row. 
+    std::vector<double> position;
+    // 原始的代码范围-----------------------------------------------------------
     double min_distance = 1000000;
     int min_index = 0;
     double count =0;
@@ -306,7 +319,6 @@ void Traj_deform_pHRI::control_main_func()
             min_index = i;
         }
     }
-    std::vector<double> position;
     for(int i=0;i<6;i++) // this for loop is to calculate the joint angles which is closest to the current joint angles in the particular row found in the previous for loop
     {
         std::vector<double> temp_;
@@ -324,6 +336,39 @@ void Traj_deform_pHRI::control_main_func()
         auto min_it = std::min_element(temp_pow_.begin(),temp_pow_.end());
         position.push_back(temp_[std::distance(temp_pow_.begin(),min_it)]);
     }
+    // 原始的代码范围-----------------------------------------------------------
+
+    // 优化后的代码范围-----------------------------------------------------------
+    // double diff_temp=0.0;
+    // double q_diff[8] = {0}; // 逆解到初始解的距离，此值辅助进行选解
+    // double min_dis = 1000000;
+    // int min_index = 0;
+    // for(int i = 0; i < inverse_return; i++) // this for loop is to find which row in the q_sol_matrix is closest to the current joint angles
+    // {   
+    //     for(int j = 0; j<6;j++)
+    //     {
+    //         if(q_sol_matrix(i,j) > PI)
+    //         {
+    //             q_sol_matrix(i,j) -= 2*PI;
+    //         }
+    //         else if(q_sol_matrix(i,j) < -PI)
+    //         {
+    //             q_sol_matrix(i,j) += 2*PI;
+    //         }
+    //         diff_temp = q_sol_matrix(i,j) - joint_position_(j);
+    //         q_diff[i] += abs(diff_temp);
+    //     }
+    //     if(q_diff[i] < min_dis)
+    //     {
+    //         min_dis = q_diff[i];
+    //         min_index = i;
+    //     }
+    // }
+    // for(int i=0;i<6;i++)
+    // {
+    //     position.push_back(q_sol_matrix(min_index,i));
+    // }
+    // 优化后的代码范围-----------------------------------------------------------
     joint_traj_cmd.joint_names = {"shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"};
     joint_traj_cmd.points.clear();
     joint_traj_point.positions = position;
@@ -336,7 +381,8 @@ void Traj_deform_pHRI::control_main_func()
 void Traj_deform_pHRI::traj_deform_pHRI_with_control()
 {
     // wait for the subscriber to get the data
-    while(sub_joint_mark == false || sub_sensor_mark == false){ ros::Duration(0.0001).sleep();} // wait for the all subscriber to get the data
+    // while(sub_joint_mark == false || sub_sensor_mark == false){ ros::Duration(0.0001).sleep();} // wait for the all subscriber to get the data
+
     ros::Rate loop_rate(loop_rate_); // set the loop rate, note that the ur5 has a highest control rate of 125Hz
     int force_sensor_count = 0; // count the force sensor trigger times
     int count_control_time_to_traj_deform = 0; // count the control times to deform the trajectory

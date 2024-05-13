@@ -75,7 +75,7 @@
   <joint name="world_joint" type="fixed">
     <parent link="world"/>
     <child link="base_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 1" rpy="-2.526189559 0.52359878 -0.6154030943"/> <!-- E402摆放姿态 -->
   </joint>
 
   <link name="tool0_controller"/>
