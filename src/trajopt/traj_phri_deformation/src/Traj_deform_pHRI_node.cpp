@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         ROS_ERROR("Failed to move to the initial pose!");
         return 0;
     }
-    ros::Duration(3.0).sleep(); // sleep for 3 seconds to make sure the robot is stable
+    ros::Duration(1.0).sleep(); // sleep for 3 seconds to make sure the robot is stable
     traj_deform_pHRI.traj_deform_pHRI_with_control(); // start the trajectory tracking control with trajectory deformation
     return 0;
 }

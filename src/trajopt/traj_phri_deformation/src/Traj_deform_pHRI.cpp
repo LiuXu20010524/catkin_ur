@@ -6,15 +6,18 @@ Traj_deform_pHRI::Traj_deform_pHRI(ros::NodeHandle &nh, int deform_traj_num, int
     // initialize subscriber and publisher
     joint_states_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &Traj_deform_pHRI::joint_states_cb, this);
     sensor_sub = nh.subscribe<geometry_msgs::WrenchStamped>("/mcc_1608g_daq", 1, &Traj_deform_pHRI::sensor_cb, this);
-    joint_traj_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>("/scaled_pos_joint_traj_controller/command", 1); //UR实机话题
-    // joint_traj_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>("/eff_joint_traj_controller/command", 1); // gazebo仿真话题
+    // joint_traj_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>("/scaled_pos_joint_traj_controller/command", 1); //UR实机话题
+    joint_traj_cmd_pub = nh.advertise<trajectory_msgs::JointTrajectory>("/eff_joint_traj_controller/command", 1); // gazebo仿真话题
 
     // deform_traj.reserve(deform_traj_num_); // reserve the memory for deform_traj
     deform_traj_matrix.resize(7,deform_traj_num_); // resize the deform_traj_matrix
     deform_traj_vector.resize(3*deform_traj_num_); // resize the deform_traj_vector
+    deform_traj_vector_att.resize(3*deform_traj_num_); // resize the deform_traj_vector
 
     // alpha is the weight for the deformation
     alpha_ = 4e11; // alpha_ should be a very very large number in this case, to ensure the stability of the deformation
+    alpha_att_ = 4e9; // alpha_att_ should be a very very large number in this case, to ensure the stability of the deformation
+    T_ = 1.0/loop_rate_; // the time interval for each control
 
     // initialize the Osqp-Eigen parameters and solver
     // P_QP is a sparse matrix
@@ -33,8 +36,9 @@ Traj_deform_pHRI::Traj_deform_pHRI(ros::NodeHandle &nh, int deform_traj_num, int
     A_paper.block(deform_traj_num_-1,deform_traj_num_-4,1,4) = Eigen::Vector4d(-1,3,-3,1).transpose();
     P_QP_not_sparse.block(0,0,deform_traj_num_,deform_traj_num_) = alpha_*A_paper.transpose()*A_paper; // you can't change the value of the P matrix and A_paper matrix
     P_QP_not_sparse.block(deform_traj_num_,deform_traj_num_,deform_traj_num_,deform_traj_num_) = alpha_*A_paper.transpose()*A_paper; // you can't change the value of the P matrix and A_paper matrix
-    P_QP_not_sparse.block(2*deform_traj_num_,2*deform_traj_num_,deform_traj_num_,deform_traj_num_) = (alpha_/1.5)*A_paper.transpose()*A_paper; // you can't change the value of the P matrix and A_paper matrix
+    P_QP_not_sparse.block(2*deform_traj_num_,2*deform_traj_num_,deform_traj_num_,deform_traj_num_) = alpha_*A_paper.transpose()*A_paper; // you can't change the value of the P matrix and A_paper matrix
     P_QP = P_QP_not_sparse.sparseView(); // you can't change the value of the P matrix and A_paper matrix
+    P_QP_att = (P_QP_not_sparse*(alpha_att_/alpha_)).sparseView(); // you can't change the value of the P matrix and A_paper matrix
     // set the A matrix for QP optimization, A matrix is a sparse matrix and you can't change the value of the A matrix
     A_QP.resize(12,3*deform_traj_num_); // resize the A matrix for QP optimization, you can't change the value of the A matrix
     A_QP.setZero(); // you can't change the value of the A matrix
@@ -52,9 +56,12 @@ Traj_deform_pHRI::Traj_deform_pHRI(ros::NodeHandle &nh, int deform_traj_num, int
     A_QP.insert(11,3*deform_traj_num_-1) = 1.0; // you can't change the value of the A matrix
     // initialize the q vector for QP optimization, here just initialize the q vector for all the elements are 0, this will be updated in the traj_deform_main_func()
     q_QP.resize(3*deform_traj_num_); // resize the q vector for QP optimization
-    q_QP.segment(0,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,0); // init the q vector for QP optimization
-    q_QP.segment(deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,0); // init the q vector for QP optimization
-    q_QP.segment(2*deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,0); // init the q vector for QP optimization
+    q_QP_att.resize(3*deform_traj_num_); // resize the q vector for QP optimization
+    q_QP.setZero(); // init the q vector for QP optimization
+    q_QP_att.setZero(); // init the q vector for QP optimization
+    // q_QP.segment(0,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,0); // init the q vector for QP optimization
+    // q_QP.segment(deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,0); // init the q vector for QP optimization
+    // q_QP.segment(2*deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,0); // init the q vector for QP optimization
     // initialize the l and u vector for QP optimization
     l_QP.resize(12); // resize the l vector for QP optimization
     u_QP.resize(12); // resize the u vector for QP optimization
@@ -70,15 +77,23 @@ Traj_deform_pHRI::Traj_deform_pHRI(ros::NodeHandle &nh, int deform_traj_num, int
     solver.data()->setHessianMatrix(P_QP); // set the P matrix for QP optimization
     solver.data()->setLowerBound(l_QP); // set the lower bound of the constraints
     solver.data()->setUpperBound(u_QP); // set the upper bound of the constraints
+        //--------------
+    solver_att.data()->setNumberOfVariables(3*deform_traj_num_);
+    solver_att.data()->setNumberOfConstraints(12);
+    solver_att.data()->setGradient(q_QP_att);
+    solver_att.settings()->setVerbosity(false);
+    solver_att.settings()->setWarmStart(true);
+    solver_att.data()->setLinearConstraintsMatrix(A_QP);
+    solver_att.data()->setHessianMatrix(P_QP_att);
+    solver_att.data()->setLowerBound(l_QP);
+    solver_att.data()->setUpperBound(u_QP);
     // initialize the solver
-    if(!solver.initSolver())
+    if(!solver.initSolver() || !solver_att.initSolver())
     {
         ROS_ERROR("OSQP optimization initialization failed!");
         return;
     }
-
     this->compute_tf_sensor2flange(); // compute the transformation matrix from the sensor to the end effector(flange)
-    // this->compute_tf_flange2tool0();
     this->compute_transform_base_link2world_E402();
     spinner = new ros::AsyncSpinner(10);
     spinner->start();
@@ -127,9 +142,9 @@ bool Traj_deform_pHRI::move_to_initial_pose(geometry_msgs::Pose &initial_target_
     joint_group_positions.push_back(-0.548961);
     joint_group_positions.push_back(1.741);
     joint_group_positions.push_back(-0.172145771);
-    //
+    //-----------------
 
-    moveit::planning_interface::MoveGroupInterface ur5_move_group("manipulator");
+    moveit::planning_interface::MoveGroupInterface ur5_move_group("manipulator"); // Initialize the move group
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
     ur5_move_group.setMaxAccelerationScalingFactor(0.1); // Allowable maximum acceleration
     ur5_move_group.setMaxVelocityScalingFactor(0.1); // Allowable maximum velocity
@@ -248,20 +263,34 @@ void Traj_deform_pHRI::traj_deform_main_func() // so far, the code only deform t
     q_QP.segment(0,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(0)); // set the q vector for QP optimization
     q_QP.segment(deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(1));
     q_QP.segment(2*deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(2));
+    q_QP_att.segment(0,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(3)); // set the q vector for QP optimization
+    q_QP_att.segment(deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(4));
+    q_QP_att.segment(2*deform_traj_num_,deform_traj_num_) = Eigen::VectorXd::Constant(deform_traj_num_,-F(5));
     solver.updateGradient(q_QP); // update the q vector for QP optimization
+    solver_att.updateGradient(q_QP_att); // update the q vector for QP optimization
     // start the Osqp optimization
-    if(solver.solveProblem()!=OsqpEigen::ErrorExitFlag::NoError)
+    if(solver.solveProblem()!=OsqpEigen::ErrorExitFlag::NoError || solver_att.solveProblem()!=OsqpEigen::ErrorExitFlag::NoError)
     {
         ROS_ERROR("OSQP optimization failed!");
         return;
     }
     deform_traj_vector = solver.getSolution(); // get the solution of the QP optimization
+    deform_traj_vector_att = solver_att.getSolution(); // get the solution of the QP optimization
     // update the deformed trajectory
     for(int i = 0; i < deform_traj_num_; i++)
     {
         deform_traj_matrix(0,i) += deform_traj_vector(i); // update the x position of the deformed trajectory
         deform_traj_matrix(1,i) += deform_traj_vector(i+deform_traj_num_); // update the y position of the deformed trajectory
         deform_traj_matrix(2,i) += deform_traj_vector(i+2*deform_traj_num_); // update the z position of the deformed trajectory
+        Eigen::Quaterniond q0 = Eigen::Quaterniond(deform_traj_matrix(6,i),deform_traj_matrix(3,i),deform_traj_matrix(4,i),deform_traj_matrix(5,i));
+        Eigen::Vector3d axis_angle(deform_traj_vector_att(i),deform_traj_vector_att(i+deform_traj_num_),deform_traj_vector_att(i+2*deform_traj_num_));
+        double theta = axis_angle.norm();
+        Eigen::Quaterniond q_deform = Eigen::Quaterniond(cos(theta/2),axis_angle(0)/theta*sin(theta/2),axis_angle(1)/theta*sin(theta/2),axis_angle(2)/theta*sin(theta/2));
+        Eigen::Quaterniond q = q_deform*q0;
+        deform_traj_matrix(3,i) = q.x();
+        deform_traj_matrix(4,i) = q.y();
+        deform_traj_matrix(5,i) = q.z();
+        deform_traj_matrix(6,i) = q.w();
     }
 }
 
@@ -372,10 +401,26 @@ void Traj_deform_pHRI::control_main_func()
     joint_traj_cmd.joint_names = {"shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"};
     joint_traj_cmd.points.clear();
     joint_traj_point.positions = position;
+    joint_traj_point.velocities = {(position[0]-joint_position_(0))/T_,(position[1]-joint_position_(1))/T_,(position[2]-joint_position_(2))/T_,
+                                    (position[3]-joint_position_(3))/T_,(position[4]-joint_position_(4))/T_,(position[5]-joint_position_(5))/T_};
     joint_traj_point.time_from_start = ros::Duration(1/loop_rate_)+ros::Duration(0.01); //need to add a small value to avoid control command out of time
     joint_traj_cmd.points.push_back(joint_traj_point);
     joint_traj_cmd.header.stamp = ros::Time::now(); // set the time stamp
-    joint_traj_cmd_pub.publish(joint_traj_cmd);
+    if(first_control_mark == false) // if the first control command is not sent, we need to set the start time
+    {
+        moveit::planning_interface::MoveGroupInterface ur5_move_group("manipulator"); // Initialize the move group
+        ur5_move_group.setMaxVelocityScalingFactor(0.04);
+        moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+        ur5_move_group.setJointValueTarget(position);
+        ur5_move_group.plan(my_plan);
+        ur5_move_group.execute(my_plan);
+        first_control_mark = true;
+        ros::Duration(1).sleep(); // sleep for 1s
+    }
+    else
+    {
+        joint_traj_cmd_pub.publish(joint_traj_cmd);
+    }
 }
 
 void Traj_deform_pHRI::traj_deform_pHRI_with_control()

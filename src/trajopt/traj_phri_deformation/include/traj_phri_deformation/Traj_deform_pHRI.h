@@ -44,6 +44,8 @@ public:
     int control_times_to_deform_; // how mant control times to deform one time of trajectory
     int loop_rate_; // Loop rate
     double alpha_; // alpha is the weight for the deformation, the larger the alpha, the less the deformation, to ensure the stability of the deformation, alpha should be a very very large number
+    double alpha_att_; // alpha for attitude deformation
+    double T_;
     // --- subscriber ---//
     ros::Subscriber joint_states_sub;
     ros::Subscriber sensor_sub;
@@ -55,6 +57,8 @@ public:
     // --- trajectory Repeat Mark ---//
     bool traj_repeat_mark = false; // if your trajectory is closed, you can set this mark to true
     bool origin_traj_no_repeat_to_end_mark = false; // if your trajectory is not closed, and the trajectory is to the end, you need to set this mark to true.
+    // --- first control mark ---//
+    bool first_control_mark = false; // Mark for the first control
     // --- Eigen ---//
     Eigen::Vector<double,6> joint_position_; // Joint position
     Eigen::Vector<double,6> joint_velocity_; // Joint velocity
@@ -62,10 +66,13 @@ public:
     Eigen::Matrix4d tf_sensor2flange; // Transformation matrix from the sensor to the end effector(flange)
     Eigen::Matrix<double,4,4> tf_baselink2world_E402; // transform matrix from base to world
     Eigen::VectorXd deform_traj_vector; // Deformed trajectory vector for QP optimization
+    Eigen::VectorXd deform_traj_vector_att; // Deformed trajectory vector for QP optimization for Attitude deformation
     Eigen::SparseMatrix<double> P_QP; // QP optimization P matrix
+    Eigen::SparseMatrix<double> P_QP_att; // QP optimization P matrix for Attitude deformation
     Eigen::MatrixXd A_paper; // A matrix in the paper "Trajectory Deformations From Physical Human–Robot Interaction" to get the P matrix
     Eigen::SparseMatrix<double> A_QP; // QP optimization A matrix
     Eigen::VectorXd q_QP; // QP optimization q vector
+    Eigen::VectorXd q_QP_att; // QP optimization q vector for Attitude deformation
     Eigen::VectorXd l_QP; // QP optimization l vector
     Eigen::VectorXd u_QP; // QP optimization u vector
     std::vector<Eigen::Vector<double,7>,Eigen::aligned_allocator<Eigen::Vector<double,7>>> origin_traj; // Original full trajectory
@@ -74,11 +81,13 @@ public:
     std::vector<Eigen::Vector<double,7>,Eigen::aligned_allocator<Eigen::Vector<double,7>>>::iterator origin_traj_iter; // Iterator for original trajectory
     // --- OsqpEigen --- //
     OsqpEigen::Solver solver; // Osqp solver
+    OsqpEigen::Solver solver_att; // Osqp solver for attitude deformation
     // --- rosmsg --- //
     trajectory_msgs::JointTrajectory joint_traj_cmd; // Joint trajectory command
     // --- spinners --- //
     ros::AsyncSpinner *spinner;
-
+    // --- MoveIt --- //
+    
 // --- Functions ---//
     Traj_deform_pHRI(ros::NodeHandle &nh, int deform_traj_num, int control_times_to_deform, int loop_rate);  // Constructor
     ~Traj_deform_pHRI(); // Destructor
